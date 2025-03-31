@@ -238,6 +238,88 @@ void SaveImagePgm(char* bruit,char* name,float** mat,int lgth,int wdth)
 //---- Fonction Pour TP ---//
 //-------------------------//
 
+ //>Var
+
+// Question 1.1
+  //>Cst
+  const double PI=3.14159265358979323846264338;
+  int NBINTERV=5000000;
+  int NbInt=NBINTERV;
+ 
+
+ float* VctPts=fmatrix_allocate_1d(NbInt+1);
+
+// Calcul de la fonction à intégrer
+float f(float x) { return (4.0f * sqrt(1 - x*x)); }
+
+//Calcul de l'intégrale
+float calculIntegrale(int NbInt)
+{
+  float result = 0.0; 
+  double result_;
+  float a = 0.0;   // Borne inférieure
+  float b = 1.0;   // Borne supérieure
+  float h = (b-a) / NbInt;  // Largeur de chaque trapèze
+  float x;
+
+  for (int i=1; i<NbInt; i++) {
+    x = i * h;
+    float fx = f(x);
+    result += fx;
+    VctPts[i] = fx; 
+
+  }
+
+  VctPts[0] = f(a);
+  VctPts[NbInt] = f(b);
+
+   result += 0.5 * (f(a) + f(b));
+
+   result *= h;
+   
+   return result;
+  }
+
+  // Question 1.2
+
+  float sommeParPaires(float* VctPts, int start, int end) 
+{
+    int length = end - start + 1;
+    
+    if (length <= 2) {
+        float somme = 0.0;
+        for (int i = start; i <= end; i++) {
+            somme += VctPts[i];
+        }
+        return somme/NBINTERV;
+    }
+    
+    int mid = start + (length / 2) - 1;
+    float somme = 0.0;
+    
+    somme += sommeParPaires(VctPts, start, mid);
+    somme += sommeParPaires(VctPts, mid + 1, end);
+    
+    return somme;
+}
+
+float sommeKahan(float* VctPts, int start, int end) 
+{
+    float e = 0.0; // Compensation pour les erreurs d'arrondi
+    float sommeKahan = 0.0;
+    
+    for (int i = start; i <= end; i++) {
+        float y = VctPts[i] - e; // Compensation
+        float t = sommeKahan + y; // Somme partielle
+        e = (t - sommeKahan) - y; // Nouvelle compensation
+        sommeKahan = t; // Mise à jour de la somme
+    }
+    
+    return sommeKahan/NBINTERV; // Normalisation
+}
+    
+
+
 //----------------------------------------------------------
 //----------------------------------------------------------
 // PROGRAMME PRINCIPAL -------------------------------------
@@ -270,20 +352,25 @@ int main(int argc,char** argv)
 // PROGRAMME ---------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 
- //>Var
- float result; 
- double result_;
 
- //>Cst
- const double PI=3.14159265358979323846264338;
- int NBINTERV=5000000;
- int NbInt=NBINTERV;
- if (argc>1)  { NbInt=atoi(argv[1]); }
- float* VctPts=fmatrix_allocate_1d(NbInt+1);
+
+
+
 
  //Programmer ici
- 
- 
+
+ if (argc>1)  { NbInt=atoi(argv[1]); }
+
+ // Question 1.1
+ float result = calculIntegrale(5000000);
+ printf("L'intégrale est : %.10f\n", result);
+
+// Question 1.2
+  float somme = sommeParPaires(VctPts, 0, NbInt);
+  printf("La somme par paires est : %.10f\n", somme);
+
+  float sommeKahanResult = sommeKahan(VctPts, 0, NbInt);
+  printf("La somme Kahan est : %.10f\n", sommeKahanResult);
 
  //End
    
