@@ -1,6 +1,7 @@
 //------------------------------------------------------
 // module  : Tp-IFT2425-I.c
 // author  : François Frigon - 20297551 - francois.frigon@umontreal.ca
+//           Xavier Dontigny - 20215658 - xavier.dontigny@umontreal.ca
 // date    : 9 avril 2025
 // version : 1.0
 // language: C++
@@ -317,6 +318,84 @@ float sommeKahan(float* VctPts, int start, int end)
     
     return sommeKahan/NBINTERV; // Normalisation
 }
+
+void diagrammeBifurcation(float** Graph2D, int width, int height) {
+    float mu_min = 2.5f;
+    float mu_max = 4.0f;
+    float dmu = (mu_max - mu_min) / (width - 1);
+
+    // Initialisation image blanche
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            Graph2D[i][j] = 255.0f;
+        }
+    }
+
+    for (int i = 0; i < width; i++) {
+        float mu = mu_min + i * dmu;
+        float x = 0.5f;  // x0
+
+        // skip les 10000 premières itérations
+        for (int n = 0; n < 10000; n++) {
+            x = mu * x * (1.0f - x);
+        }
+
+        // draw les 10000 itérations suivantes
+        for (int n = 0; n < 10000; n++) {
+            x = mu * x * (1.0f - x);
+            int y_pixel = height - 1 - (int)(x * height);
+            if (y_pixel >= 0 && y_pixel < height) {
+                Graph2D[y_pixel][i] = 0.0f; // noir
+            }
+        }
+    }
+}
+
+void estimePi() {
+  const int N = 10000000;
+  const int N1 = 10000;         // skip
+  float x_float[3] = {0.2f, 0.4f, 0.6f};
+  double x_double[3] = {0.2, 0.4, 0.6};
+
+  for (int i = 0; i < 3; i++) {
+
+      float sum_float = 0.0f;
+      float x_f = x_float[i];
+
+      // Skip
+      for (int n = 0; n < N1; n++) {
+          x_f = 4.0f * x_f * (1.0f - x_f);
+      }
+
+      for (int n = 0; n < N; n++) {
+          x_f = 4.0f * x_f * (1.0f - x_f);
+          sum_float += sqrtf(x_f);
+      }
+
+      // Approx en float
+      float pi_float = 2.0f * (N / sum_float);
+
+      double sum_double = 0.0;
+      double x_d = x_double[i];
+
+      // Skip
+      for (int n = 0; n < N1; n++) {
+          x_d = 4.0 * x_d * (1.0 - x_d);
+      }
+
+      for (int n = 0; n < N; n++) {
+          x_d = 4.0 * x_d * (1.0 - x_d);
+          sum_double += sqrt(x_d);
+      }
+
+      // Approx en double
+      double pi_double = 2.0 * (N / sum_double);
+
+
+      printf("x0=%.1f | Float: π≈%.10f, Double: π≈%.10f\n",
+             x_float[i], pi_float, pi_double);
+  }
+}
     
 
 
@@ -372,6 +451,12 @@ int main(int argc,char** argv)
   float sommeKahanResult = sommeKahan(VctPts, 0, NbInt);
   printf("La somme Kahan est : %.10f\n", sommeKahanResult);
 
+// 3
+diagrammeBifurcation(Graph2D, 4096, 4096);
+
+//4
+estimePi();
+
  //End
    
 
@@ -387,7 +472,7 @@ int main(int argc,char** argv)
  x_ppicture=cree_Ximage(Graph2D,zoom,length,width);
 
  //Sauvegarde
- //SaveImagePgm((char*)"",(char*)"Graphe",Graph2D,length,width); //Pour sauvegarder l'image
+ SaveImagePgm((char*)"",(char*)"Graphe",Graph2D,length,width); //Pour sauvegarder l'image
  printf("\n\n Pour quitter,appuyer sur la barre d'espace");
  fflush(stdout);
 
